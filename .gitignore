@@ -21,3 +21,6 @@ __pycache__
 
 # for temp use
 *.json
+
+# venv
+venv
