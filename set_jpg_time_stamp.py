@@ -48,9 +48,9 @@ def set_jpg_time_stamp(path):
     if not new_time_stamp:
         file_name_no_ext = splitext(split(path)[1])[0]
         try:
-            time_str_1, time_str_2 = file_name_no_ext.split('_')[1:3]
+            time_strs = file_name_no_ext.split('_')[1:3]
             new_time_stamp = time.mktime(time.strptime(
-                time_str_1 + time_str_2, '%Y%m%d%H%M%S'))
+                ''.join(time_strs), '%Y%m%d%H%M%S'))
         except ValueError:
             print(
                 'File name in "{}" contains no valid time info, nothing to try.'.format(path))
