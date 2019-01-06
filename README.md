@@ -1,2 +1,8 @@
-自己用的，不保证效果。
+**自己用的，不保证效果！**
+
+需要使用：ExifRead, pypiwin32
+
+- `pip install ExifRead`
+- `pip install pypiwin32`
+
 用法：python set_jpg_time_stamp.py "图片文件夹路径（不包含结尾的/）"。
