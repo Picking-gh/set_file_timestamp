@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*
+# Written by - Picking@woft.name
+
+'''参考https://blog.csdn.net/PirateLeo/article/details/7590056
+'''
 import os
 import sys
 import struct

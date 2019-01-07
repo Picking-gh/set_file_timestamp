@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*
+# Written by - Picking@woft.name
+
 import os
 import sys
 import time
