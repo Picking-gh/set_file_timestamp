@@ -89,7 +89,7 @@ def get_datetime(n: int):
     return start_point + delta
 
 
-def set_mp4_time_stamp(path):
+def set_mp4_timestamp(path):
     '''用mvhd中的creation_time和modification_time设置mp4文件的创建时间和修改时间。
     如果目标时间与当前文件的创建时间一致（时间差小于1s）则不修改。
     如果creation_time和modification_time之中有1个为0，则用另一个赋值，都为零则不修改文件时间。
@@ -112,27 +112,27 @@ def set_mp4_time_stamp(path):
     except (IndexError, struct.error):
         print(f'{path} contains no valid mvhd box. Skip it.')
         return
-    new_ctime_stamp = time.mktime(creation_time.timetuple())
-    new_mtime_stamp = time.mktime(modification_time.timetuple())
-    if new_ctime_stamp + new_mtime_stamp == 0:
+    new_ctimestamp = time.mktime(creation_time.timetuple())
+    new_mtimestamp = time.mktime(modification_time.timetuple())
+    if new_ctimestamp + new_mtimestamp == 0:
         print(f'{path} contains no creation_time or modification_time. Skip it.')
         return
-    if new_ctime_stamp == 0:
-        new_ctime_stamp = new_mtime_stamp
-    if new_mtime_stamp == 0:
-        new_mtime_stamp = new_ctime_stamp
+    if new_ctimestamp == 0:
+        new_ctimestamp = new_mtimestamp
+    if new_mtimestamp == 0:
+        new_mtimestamp = new_ctimestamp
 
     mod_flag = False
-    old_mtime_stamp = getmtime(path)
-    mtime = Time(old_mtime_stamp)
-    if abs(old_mtime_stamp - new_mtime_stamp) >= 1:
-        mtime = Time(new_mtime_stamp)
+    old_mtimestamp = getmtime(path)
+    mtime = Time(old_mtimestamp)
+    if abs(old_mtimestamp - new_mtimestamp) >= 1:
+        mtime = Time(new_mtimestamp)
         mod_flag = True
 
-    old_ctime_stamp = getctime(path)
-    ctime = Time(old_ctime_stamp)
-    if abs(old_ctime_stamp - new_ctime_stamp) >= 1:
-        ctime = Time(new_ctime_stamp)
+    old_ctimestamp = getctime(path)
+    ctime = Time(old_ctimestamp)
+    if abs(old_ctimestamp - new_ctimestamp) >= 1:
+        ctime = Time(new_ctimestamp)
         mod_flag = True
 
     if mod_flag:
@@ -153,4 +153,4 @@ if not isdir(path):
 for root, dirs, files in os.walk(path):
     for a_file in files:
         if splitext(a_file)[1] in ('.mp4',):
-            set_mp4_time_stamp(join(root, a_file))
+            set_mp4_timestamp(join(root, a_file))
