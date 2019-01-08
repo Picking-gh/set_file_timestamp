@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*
 # Written by - Picking@woft.name
 
-'''参考https://blog.csdn.net/PirateLeo/article/details/7590056
+'''参考:
+https://blog.csdn.net/PirateLeo/article/details/7590056
+https://blog.csdn.net/pirateleo/article/details/7061452
 '''
 import os
 import sys
@@ -18,11 +20,11 @@ from win32file import (FILE_ATTRIBUTE_NORMAL, FILE_SHARE_WRITE, GENERIC_WRITE,
 
 
 def get_a_mp4_box_body(path):
+    # get len
+    # get header
     with open(path, 'rb') as f:
         try:
-            a = f.read(4)
-            print(a)
-            box_len = struct.unpack('>I', a)[0]
+            box_len = struct.unpack('>I', f.read(4))[0]
         except struct.error:
             raise ValueError(
                 'File corrupted. This may not be a valid mp4 file.')
@@ -35,9 +37,7 @@ def get_a_mp4_box_body(path):
                 'No ftypbox found. This may not be a valid mp4 file.')
         while True:
             try:
-                a = f.read(4)
-                print(a)
-                box_len = struct.unpack('>I', a)[0]
+                box_len = struct.unpack('>I', f.read(4))[0]
             except struct.error:
                 raise ValueError(
                     'File corrupted. This may not be a valid mp4 file.')
