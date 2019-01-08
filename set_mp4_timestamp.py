@@ -19,6 +19,7 @@ from pywintypes import Time
 from win32file import (FILE_ATTRIBUTE_NORMAL, FILE_SHARE_WRITE, GENERIC_WRITE,
                        OPEN_EXISTING, CloseHandle, CreateFile, SetFileTime)
 
+# From ISO/IEC 14496-12 2nd edition in the 3rd link above and is out of date now...wtf
 box = set(('ftyp', 'moov', 'mdat', 'trak', 'tref', 'hint', 'cdsc', 'mdia', 'minf', 'dinf', 'stbl',
            'free', 'skip', 'edts', 'udta', 'mvex', 'moof', 'traf', 'mfra', 'sinf', 'schi', 'tims',
            'tsro', 'snro', 'rtpo', 'hnti', 'rtp ', 'sdp ', 'hinf', 'trpy', 'nump', 'tpyl', 'totl',
