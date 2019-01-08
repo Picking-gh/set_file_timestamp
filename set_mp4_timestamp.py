@@ -5,6 +5,7 @@
 '''参考:
 https://blog.csdn.net/PirateLeo/article/details/7590056
 https://blog.csdn.net/pirateleo/article/details/7061452
+https://l.web.umkc.edu/lizhu/teaching/2016sp.video-communication/ref/mp4.pdf
 '''
 import os
 import sys
@@ -17,6 +18,20 @@ from pywintypes import Time
 
 from win32file import (FILE_ATTRIBUTE_NORMAL, FILE_SHARE_WRITE, GENERIC_WRITE,
                        OPEN_EXISTING, CloseHandle, CreateFile, SetFileTime)
+
+box = set(('ftyp', 'moov', 'mdat', 'trak', 'tref', 'hint', 'cdsc', 'mdia', 'minf', 'dinf', 'stbl',
+           'free', 'skip', 'edts', 'udta', 'mvex', 'moof', 'traf', 'mfra', 'sinf', 'schi', 'tims',
+           'tsro', 'snro', 'rtpo', 'hnti', 'rtp ', 'sdp ', 'hinf', 'trpy', 'nump', 'tpyl', 'totl',
+           'npck', 'tpay', 'maxr', 'dmed', 'dimm', 'drep', 'tmin', 'tmax', 'pmax', 'dmax', 'payt'))
+fullbox = set(('mvhd', 'tkhd', 'mdhd', 'hdlr', 'vmhd', 'smhd', 'hmhd', 'nmhd', 'url ', 'urn ', 'dref', 'stts',
+               'ctts', 'stsd', 'stsz', 'stz2', 'stsc', 'stco', 'co64', 'stss', 'stsh', 'stdp', 'padb', 'elst',
+               'cprt', 'mehd', 'trex', 'mfhd', 'tfhd', 'trun', 'tfra', 'mfro', 'sdtp', 'sbgp', 'sgpd', 'stsl',
+               'subs', 'pdin', 'meta', 'xml ', 'bxml', 'iloc', 'pitm', 'ipro', 'infe', 'iinf', 'imif', 'ipmc',
+               'schm', 'srpp'))
+container = set(('moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex',
+                 'moof', 'traf', 'mfra', 'skip', 'udta', 'meta', 'ipro', 'sinf',
+                 'srpp', 'srtp'))
+boxes = box | fullbox
 
 
 def get_a_mp4_box_body(path):
@@ -52,7 +67,7 @@ def get_a_mp4_box_body(path):
                     box_len = struct.unpack('>Q', box_body_1[4:])[0]
                 except struct.error:
                     raise ValueError(
-                        'File corrupted. This may not be a valid mp4 file.')                
+                        'File corrupted. This may not be a valid mp4 file.')
                 box_body_2_len = box_len - 16
             # box size is less than 0xFFFFFFFF
             else:
@@ -105,10 +120,12 @@ def set_mp4_timestamp(path):
         version = mvhd[4:5]
         if version == b'0':
             creation_time = get_datetime(struct.unpack('>I', mvhd[8:12])[0])
-            modification_time = get_datetime(struct.unpack('>I', mvhd[12:16])[0])
+            modification_time = get_datetime(
+                struct.unpack('>I', mvhd[12:16])[0])
         else:
             creation_time = get_datetime(struct.unpack('>Q', mvhd[8:16])[0])
-            modification_time = get_datetime(struct.unpack('>Q', mvhd[16:24])[0])
+            modification_time = get_datetime(
+                struct.unpack('>Q', mvhd[16:24])[0])
     except (IndexError, struct.error):
         print(f'{path} contains no valid mvhd box. Skip it.')
         return
