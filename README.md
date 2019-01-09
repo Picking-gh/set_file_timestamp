@@ -19,12 +19,14 @@
 用法1：
 
     from collections import deque
+    from os.path import getsize
+    
     from mp4parse import parser
     
-    g = parser(s, f, 0, getsize(path))
+    mp4file = 'xxx'
     s = deque()
-    with open(path, 'rb') as f:
-        g = parser(s, f, 0, getsize(path))
+    with open(mp4file, 'rb') as f:
+        g = parser(s, f, 0, getsize(mp4file))
         pass
         
 用法2（需使用第三方库：asciitree）：
