@@ -16,45 +16,62 @@
 
 3. mp4parse.py
 
-用法：`python mp4parse.py "mp4文件"`
+用法1：
 
-输出：文件中所有的box的信息(type, length, offset)和所属层次关系：
+    from collections import deque
+    from mp4parse import parser
+    
+    g = parser(s, f, 0, getsize(path))
+    s = deque()
+    with open(path, 'rb') as f:
+        g = parser(s, f, 0, getsize(path))
+        pass
+        
+用法2：
 
-    (('ftyp', 24, 0), ('file',))
-    (('moov', 9677, 24), ('file',))
-    (('mvhd', 108, 32), ('file', 'moov'))
-    (('trak', 2760, 164), ('file', 'moov'))
-    (('tkhd', 92, 172), ('file', 'moov', 'trak'))
-    (('mdia', 2660, 264), ('file', 'moov', 'trak'))
-    (('mdhd', 32, 272), ('file', 'moov', 'trak', 'mdia'))
-    (('hdlr', 33, 304), ('file', 'moov', 'trak', 'mdia'))
-    (('minf', 2587, 337), ('file', 'moov', 'trak', 'mdia'))
-    (('smhd', 16, 345), ('file', 'moov', 'trak', 'mdia', 'minf'))
-    (('dinf', 36, 361), ('file', 'moov', 'trak', 'mdia', 'minf'))
-    (('dref', 28, 369), ('file', 'moov', 'trak', 'mdia', 'minf', 'dinf'))
-    (('stbl', 2527, 397), ('file', 'moov', 'trak', 'mdia', 'minf'))
-    (('stsd', 103, 405), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stts', 24, 508), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stsz', 2284, 532), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stsc', 40, 2816), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stco', 68, 2856), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('trak', 6777, 2924), ('file', 'moov'))
-    (('tkhd', 92, 2932), ('file', 'moov', 'trak'))
-    (('mdia', 6677, 3024), ('file', 'moov', 'trak'))
-    (('mdhd', 32, 3032), ('file', 'moov', 'trak', 'mdia'))
-    (('hdlr', 33, 3064), ('file', 'moov', 'trak', 'mdia'))
-    (('minf', 6604, 3097), ('file', 'moov', 'trak', 'mdia'))
-    (('vmhd', 20, 3105), ('file', 'moov', 'trak', 'mdia', 'minf'))
-    (('dinf', 36, 3125), ('file', 'moov', 'trak', 'mdia', 'minf'))
-    (('dref', 28, 3133), ('file', 'moov', 'trak', 'mdia', 'minf', 'dinf'))
-    (('stbl', 6540, 3161), ('file', 'moov', 'trak', 'mdia', 'minf'))
-    (('stsd', 148, 3169), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stts', 1912, 3317), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stsz', 1456, 5229), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stsc', 40, 6685), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stco', 64, 6725), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('stss', 24, 6789), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('ctts', 2888, 6813), ('file', 'moov', 'trak', 'mdia', 'minf', 'stbl'))
-    (('free', 136, 9701), ('file',))
-    (('mdat', 1737642, 9837), ('file',))
-    (('free', 136, 1747479), ('file',))
+    python mp4parse.py "mp4文件"
+
+输出："mp4文件"中所有的box的信息及层次关系，每个节点格式为：box_type (@offset, length)
+
+    .\tmp\19283803011996511a580271.mp4
+    +-- ftyp (@0, 32)
+    +-- moov (@32, 8372)
+    |   +-- mvhd (@40, 108)
+    |   +-- trak (@148, 5064)
+    |   |   +-- tkhd (@156, 92)
+    |   |   +-- edts (@248, 36)
+    |   |   |   +-- elst (@256, 28)
+    |   |   +-- mdia (@284, 4928)
+    |   |       +-- mdhd (@292, 32)
+    |   |       +-- hdlr (@324, 45)
+    |   |       +-- minf (@369, 4843)
+    |   |           +-- smhd (@377, 16)
+    |   |           +-- dinf (@393, 36)
+    |   |           |   +-- dref (@401, 28)
+    |   |           +-- stbl (@429, 4783)
+    |   |               +-- stsd (@437, 103)
+    |   |               +-- stts (@540, 24)
+    |   |               +-- stsc (@564, 892)
+    |   |               +-- stsz (@1456, 2772)
+    |   |               +-- stco (@4228, 984)
+    |   +-- trak (@5212, 2679)
+    |   |   +-- tkhd (@5220, 92)
+    |   |   +-- edts (@5312, 36)
+    |   |   |   +-- elst (@5320, 28)
+    |   |   +-- mdia (@5348, 2543)
+    |   |       +-- mdhd (@5356, 32)
+    |   |       +-- hdlr (@5388, 45)
+    |   |       +-- minf (@5433, 2458)
+    |   |           +-- vmhd (@5441, 20)
+    |   |           +-- dinf (@5461, 36)
+    |   |           |   +-- dref (@5469, 28)
+    |   |           +-- stbl (@5497, 2394)
+    |   |               +-- stsd (@5505, 138)
+    |   |               +-- stts (@5643, 200)
+    |   |               +-- stss (@5843, 20)
+    |   |               +-- stsc (@5863, 40)
+    |   |               +-- stsz (@5903, 1004)
+    |   |               +-- stco (@6907, 984)
+    |   +-- udta (@7891, 513)
+    |       +-- meta (@7899, 90)
+    +-- mdat (@8404, 2386598)
