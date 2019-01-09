@@ -8,7 +8,7 @@
 
     python set_jpg_timestamp.py "jpg文件夹路径（不包含结尾的/）"。
 
-2. set_mp4_timeftamp.py
+2. set_mp4_timetamp.py
 
 用法（需使用第三方库：pypiwin32）：
 
