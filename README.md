@@ -4,15 +4,15 @@
 
 1. set_jpg_timestamp.py
 
-使用第三方库：ExifRead, pypiwin32
+用法（需使用第三方库：ExifRead, pypiwin32）：
 
-用法：`python set_jpg_timestamp.py "jpg文件夹路径（不包含结尾的/）"。`
+    python set_jpg_timestamp.py "jpg文件夹路径（不包含结尾的/）"。
 
 2. set_mp4_timeftamp.py
 
-使用第三方库：pypiwin32
+用法（需使用第三方库：pypiwin32）：
 
-用法：`python set_mp4_timestamp.py "mp4文件夹路径（不包含结尾的/）"`
+    python set_mp4_timestamp.py "mp4文件夹路径（不包含结尾的/）"
 
 3. mp4parse.py
 
@@ -27,7 +27,7 @@
         g = parser(s, f, 0, getsize(path))
         pass
         
-用法2：
+用法2（需使用第三方库：asciitree）：
 
     python mp4parse.py "mp4文件"
 
