@@ -1,4 +1,6 @@
-**自己用的，不保证效果！**
+**自己用的，没有充分测试！只可用于Windows，Linux下无效！**
+
+需要python 3.6及以上版本。
 
 1. set_jpg_timestamp.py
 
@@ -23,5 +25,3 @@
     ((b'mvhd', 108, 40), ('file', b'moov'))
     ((b'trak', 5064, 148), ('file', b'moov'))
     ...
-
-注：需要python版本3.6及以上
