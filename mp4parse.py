@@ -31,9 +31,9 @@ container = {b'moov', b'trak', b'edts', b'mdia', b'minf', b'dinf', b'stbl', b'mv
 boxes = box | fullbox | {b'uuid'}
 
 
-def parser(s: deque, f, offset, size):
+def parser(s: deque, f, offset: int, size: int):
     '''box结构生成器，按深度优先方式遍历待解析数据段中的boxes，按顺序生成单一box信息和该box所在层次。
-    s: box层结构的栈；
+    s: box层结构栈；
     f: 读取数据的文件；
     offset: 起始解析点；
     size: 待解析数据长度；
@@ -60,6 +60,12 @@ def parser(s: deque, f, offset, size):
             continue
         # data followed by header in normal box, assume the data is a sub_box
         sub_box_offset = 8
+        # fullbox has an additional 1 byte of version and 3 bytes of flags
+        if box_type in fullbox:
+            # dummy read
+            if len(f.read(4)) != 4:
+                raise ValueError('File corrupted. Stop parsing.')
+            sub_box_offset += 4
         # 0 size box means end of file
         if box_len == 0:
             return
@@ -73,11 +79,15 @@ def parser(s: deque, f, offset, size):
         yield ((box_type, box_len, offset + box_offset), tuple(s))
 
         if box_type in container:
-            s.append(box_type)
-            sub_box_parse = parser(
-                s, f, offset+box_offset+sub_box_offset, box_len)
-            yield from sub_box_parse
-            s.pop()
+            # meta只有在最顶层的时候才是容器
+            if box_type == b'meta' and len(s) != 1:
+                pass
+            else:
+                s.append(box_type.decode())
+                sub_box_parse = parser(
+                    s, f, offset+box_offset+sub_box_offset, box_len-sub_box_offset)
+                yield from sub_box_parse
+                s.pop()
         box_offset += box_len
 
 
@@ -88,9 +98,8 @@ if __name__ == "__main__":
     try:
         mp4file = sys.argv[1:][0]
     except IndexError:
-        # print(u'请在命令行附加要解析的文件。')
-        # sys.exit(1)
-        mp4file = '19283803011996511a580271.mp4'
+        print(u'请在命令行附加要解析的文件。')
+        sys.exit(1)
     if isdir(mp4file):
         print(u'请在命令行附加要解析的文件。')
         sys.exit(1)
