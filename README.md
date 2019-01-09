@@ -2,13 +2,13 @@
 
 1. set_jpg_timestamp.py
 
-第三方库：ExifRead, pypiwin32
+使用第三方库：ExifRead, pypiwin32
 
 用法：`python set_jpg_timestamp.py "jpg文件夹路径（不包含结尾的/）"。`
 
 2. set_mp4_timeftamp.py
 
-第三方库：pypiwin32
+使用第三方库：pypiwin32
 
 用法：`python set_mp4_timestamp.py "mp4文件夹路径（不包含结尾的/）"`
 
@@ -23,3 +23,5 @@
     ((b'mvhd', 108, 40), ('file', b'moov'))
     ((b'trak', 5064, 148), ('file', b'moov'))
     ...
+
+注：需要python版本3.6及以上
