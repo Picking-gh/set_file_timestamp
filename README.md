@@ -27,7 +27,8 @@
     s = deque()
     with open(mp4file, 'rb') as f:
         g = parser(s, f, 0, getsize(mp4file))
-        pass
+        for box_info, box_stacks in g:
+            pass
         
 用法2（需使用第三方库：asciitree）：
 
