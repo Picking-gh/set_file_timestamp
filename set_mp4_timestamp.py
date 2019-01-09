@@ -2,97 +2,36 @@
 # -*- coding: utf-8 -*
 # Written by - Picking@woft.name
 
-'''参考:
-https://blog.csdn.net/PirateLeo/article/details/7590056
-https://blog.csdn.net/pirateleo/article/details/7061452
-https://l.web.umkc.edu/lizhu/teaching/2016sp.video-communication/ref/mp4.pdf
-'''
 import os
 import sys
 import struct
 import time
-from datetime import datetime, timedelta
-from os.path import getctime, getmtime, isdir, join, split, splitext
+from collections import deque
+from datetime import datetime, timedelta, timezone
+from os.path import getctime, getmtime, isdir, join, split, splitext, getsize
 
 from pywintypes import Time
 
 from win32file import (FILE_ATTRIBUTE_NORMAL, FILE_SHARE_WRITE, GENERIC_WRITE,
                        OPEN_EXISTING, CloseHandle, CreateFile, SetFileTime)
 
-# From ISO/IEC 14496-12 2nd edition in the 3rd link above and is out of date now...wtf
-box = set(('ftyp', 'moov', 'mdat', 'trak', 'tref', 'hint', 'cdsc', 'mdia', 'minf', 'dinf', 'stbl',
-           'free', 'skip', 'edts', 'udta', 'mvex', 'moof', 'traf', 'mfra', 'sinf', 'schi', 'tims',
-           'tsro', 'snro', 'rtpo', 'hnti', 'rtp ', 'sdp ', 'hinf', 'trpy', 'nump', 'tpyl', 'totl',
-           'npck', 'tpay', 'maxr', 'dmed', 'dimm', 'drep', 'tmin', 'tmax', 'pmax', 'dmax', 'payt'))
-fullbox = set(('mvhd', 'tkhd', 'mdhd', 'hdlr', 'vmhd', 'smhd', 'hmhd', 'nmhd', 'url ', 'urn ', 'dref', 'stts',
-               'ctts', 'stsd', 'stsz', 'stz2', 'stsc', 'stco', 'co64', 'stss', 'stsh', 'stdp', 'padb', 'elst',
-               'cprt', 'mehd', 'trex', 'mfhd', 'tfhd', 'trun', 'tfra', 'mfro', 'sdtp', 'sbgp', 'sgpd', 'stsl',
-               'subs', 'pdin', 'meta', 'xml ', 'bxml', 'iloc', 'pitm', 'ipro', 'infe', 'iinf', 'imif', 'ipmc',
-               'schm', 'srpp'))
-container = set(('moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex',
-                 'moof', 'traf', 'mfra', 'skip', 'udta', 'meta', 'ipro', 'sinf',
-                 'srpp', 'srtp'))
-boxes = box | fullbox
-
-
-def get_a_mp4_box_body(path):
-    # get len
-    # get header
-    with open(path, 'rb') as f:
-        try:
-            box_len = struct.unpack('>I', f.read(4))[0]
-        except struct.error:
-            raise ValueError(
-                'File corrupted. This may not be a valid mp4 file.')
-        first_box_body = f.read(box_len - 4)
-        if len(first_box_body) != box_len - 4:
-            raise ValueError(
-                'File corrupted. This may not be a valid mp4 file.')
-        if first_box_body[0:4] != b'ftyp':
-            raise ValueError(
-                'No ftypbox found. This may not be a valid mp4 file.')
-        while True:
-            try:
-                box_len = struct.unpack('>I', f.read(4))[0]
-            except struct.error:
-                raise ValueError(
-                    'File corrupted. This may not be a valid mp4 file.')
-            # hit the last box
-            if box_len == 0:
-                return
-            # box size to be large
-            if box_len == 1:
-                # this 12 bytes box_body_1 contains the box type(4) and the large-size(8)
-                box_body_1 = f.read(12)
-                try:
-                    box_len = struct.unpack('>Q', box_body_1[4:])[0]
-                except struct.error:
-                    raise ValueError(
-                        'File corrupted. This may not be a valid mp4 file.')
-                box_body_2_len = box_len - 16
-            # box size is less than 0xFFFFFFFF
-            else:
-                box_body_1 = b''
-                box_body_2_len = box_len - 4
-            box_body_2 = f.read(box_body_2_len)
-            # hit the end of file. file maybe interrupted
-            if len(box_body_2) != box_body_2_len:
-                return box_body_1 + box_body_2
-            # finally the box_body!
-            yield box_body_1 + box_body_2
+from mp4parse import parser
 
 
 def get_mvhd(path):
     '''A mp4 file contains only one mvhdbox. So we get one or none
     '''
-    g = get_a_mp4_box_body(path)
-    while True:
-        try:
-            box_body = next(g)
-            if box_body[0:4] == 'mvhd':
-                return box_body
-        except StopIteration:
-            return b''
+    s = deque()
+    with open(path, 'rb') as f:
+        g = parser(s, f, 0, getsize(path))
+        while True:
+            try:
+                box, _ = next(g)
+                if box[0] == b'mvhd':
+                    f.seek(box[2])
+                    return f.read(box[1])
+            except StopIteration:
+                return b''
 
 
 def get_datetime(n: int):
@@ -100,9 +39,12 @@ def get_datetime(n: int):
     Tihs is an integer in seconds since midnight, Jan. 1, 1904, in UTC time
     Make this integer a datetime object.
     '''
-    start_point = datetime(1904, 1, 1)  # January 1st, 1904 at midnight
+    # January 1st, 1904 at midnight, UTC time
+    start_point = datetime(1904, 1, 1).replace(tzinfo=timezone.utc)
     delta = timedelta(seconds=n)
-    return start_point + delta
+    # 设置本地时区，按北京时间设置
+    tz_utc_8 = timezone(timedelta(hours=8))
+    return (start_point + delta).astimezone(tz_utc_8)
 
 
 def set_mp4_timestamp(path):
@@ -118,27 +60,25 @@ def set_mp4_timestamp(path):
 
     # mvhd is FullBox，是Box的扩展，Box结构的基础上在Header中增加8bits version和24bits flags
     try:
-        version = mvhd[4:5]
-        if version == b'0':
-            creation_time = get_datetime(struct.unpack('>I', mvhd[8:12])[0])
-            modification_time = get_datetime(
-                struct.unpack('>I', mvhd[12:16])[0])
-        else:
-            creation_time = get_datetime(struct.unpack('>Q', mvhd[8:16])[0])
-            modification_time = get_datetime(
-                struct.unpack('>Q', mvhd[16:24])[0])
+        version = mvhd[8:9]
+        if version == b'\x00':
+            creation_time = struct.unpack('>I', mvhd[12:16])[0]
+            modification_time = struct.unpack('>I', mvhd[16:20])[0]
+        elif version == b'\x01':
+            creation_time = struct.unpack('>Q', mvhd[12:20])[0]
+            modification_time = struct.unpack('>Q', mvhd[20:28])[0]
     except (IndexError, struct.error):
         print(f'{path} contains no valid mvhd box. Skip it.')
         return
-    new_ctimestamp = time.mktime(creation_time.timetuple())
-    new_mtimestamp = time.mktime(modification_time.timetuple())
-    if new_ctimestamp + new_mtimestamp == 0:
+    if creation_time + modification_time == 0:
         print(f'{path} contains no creation_time or modification_time. Skip it.')
         return
-    if new_ctimestamp == 0:
-        new_ctimestamp = new_mtimestamp
-    if new_mtimestamp == 0:
-        new_mtimestamp = new_ctimestamp
+    if creation_time == 0:
+        creation_time = modification_time
+    if modification_time == 0:
+        modification_time = creation_time
+    new_ctimestamp = time.mktime(get_datetime(creation_time).timetuple())
+    new_mtimestamp = time.mktime(get_datetime(modification_time).timetuple())
 
     mod_flag = False
     old_mtimestamp = getmtime(path)

@@ -19,6 +19,9 @@ __pycache__
 # log
 *.log*
 
+# tmp
+tmp
+
 # for temp use
 *.json
 
