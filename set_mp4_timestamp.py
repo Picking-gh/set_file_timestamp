@@ -27,7 +27,7 @@ def get_mvhd(path):
         while True:
             try:
                 box, _ = next(g)
-                if box[0] == b'mvhd':
+                if box[0] == 'mvhd':
                     f.seek(box[2])
                     return f.read(box[1])
             except StopIteration:
