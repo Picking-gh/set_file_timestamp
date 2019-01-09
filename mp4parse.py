@@ -76,14 +76,16 @@ def parser(s: deque, f, offset: int, size: int):
             except struct.error:
                 raise ValueError('File corrupted. Stop parsing.')
             sub_box_offset += 8
-        yield ((box_type.decode(), box_len, offset + box_offset), tuple(s))
+        box_info = (box_type.decode(), box_len, offset + box_offset)
+        yield (box_info, tuple(s))
 
         if box_type in container:
             # meta只有在最顶层的时候才是容器
             if box_type == b'meta' and len(s) != 1:
                 pass
             else:
-                s.append(box_type.decode())
+                # push box_info instead of box_type into stack to prevent treeview building confusing
+                s.append(f'{box_info[0]} (@{box_info[2]}, {box_info[1]})')
                 sub_box_parse = parser(
                     s, f, offset+box_offset+sub_box_offset, box_len-sub_box_offset)
                 yield from sub_box_parse
@@ -92,8 +94,11 @@ def parser(s: deque, f, offset: int, size: int):
 
 
 if __name__ == "__main__":
-    from os.path import isdir, getsize
     import sys
+    from os.path import isdir, getsize
+
+    from asciitree import LeftAligned
+    from collections import OrderedDict as OD
 
     try:
         mp4file = sys.argv[1:][0]
@@ -105,8 +110,13 @@ if __name__ == "__main__":
         sys.exit(1)
 
     s = deque()
-    s.append('file')
+    s.append(mp4file)
+    tree = {mp4file: OD()}
     with open(mp4file, 'rb') as f:
-        g = parser(s, f, 0, getsize(mp4file))
-        for box in g:
-            print(box)
+        for box_info, box_stacks in parser(s, f, 0, getsize(mp4file)):
+            key = tree
+            for s in box_stacks:
+                key = key[s]
+            key[f'{box_info[0]} (@{box_info[2]}, {box_info[1]})'] = {}
+        tr = LeftAligned()
+        print(tr(tree))
