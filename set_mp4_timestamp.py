@@ -42,9 +42,9 @@ def get_datetime(n: int):
     # January 1st, 1904 at midnight, UTC time
     start_point = datetime(1904, 1, 1).replace(tzinfo=timezone.utc)
     delta = timedelta(seconds=n)
-    # 设置本地时区，按北京时间设置
-    tz_utc_8 = timezone(timedelta(hours=8))
-    return (start_point + delta).astimezone(tz_utc_8)
+    # 设置本地时区，暂时只针对不使用DST的地区。time.timezone在东半球为负值，故需要加个负号
+    tz_adj = timezone(timedelta(seconds=-time.timezone))
+    return (start_point + delta).astimezone(tz_adj)
 
 
 def set_mp4_timestamp(path):

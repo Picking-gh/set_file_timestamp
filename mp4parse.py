@@ -76,7 +76,7 @@ def parser(s: deque, f, offset: int, size: int):
             except struct.error:
                 raise ValueError('File corrupted. Stop parsing.')
             sub_box_offset += 8
-        yield ((box_type.encode(), box_len, offset + box_offset), tuple(s))
+        yield ((box_type.decode(), box_len, offset + box_offset), tuple(s))
 
         if box_type in container:
             # meta只有在最顶层的时候才是容器
