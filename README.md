@@ -20,4 +20,13 @@
 3. mp4parse.py
 
 用法：python mp4parse.py "mp4文件"
+
+输出：文件中所有的box的信息和层次：
+
+`((b'ftyp', 32, 0), ('file',))`
+`((b'moov', 8372, 32), ('file',))`
+`((b'mvhd', 108, 40), ('file', b'moov'))`
+`((b'trak', 5064, 148), ('file', b'moov'))`
+`...`
+
 遗留的问题：对某些mp4文件解析时可能无法停止。
