@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*
 # Written by - Picking@woft.name
 
-'''用于解析符合ISO/IEC 14496-12标准的mp4文件的box层次结构
+'''用于解析符合ISO/IEC 14496-12标准的mp4文件的box层次结构.
+
 参考:
-https://blog.csdn.net/PirateLeo/article/details/7590056
-https://blog.csdn.net/pirateleo/article/details/7061452
-https://l.web.umkc.edu/lizhu/teaching/2016sp.video-communication/ref/mp4.pdf
+    https://blog.csdn.net/PirateLeo/article/details/7590056
+    https://blog.csdn.net/pirateleo/article/details/7061452
+    https://l.web.umkc.edu/lizhu/teaching/2016sp.video-communication/ref/mp4.pdf
 '''
 import struct
 
@@ -32,13 +33,24 @@ boxes = box | fullbox | {b'uuid'}
 
 
 def parser(s: deque, f, offset: int, size: int):
-    '''box结构生成器，按深度优先方式遍历待解析数据段中的boxes，按顺序生成单一box信息和该box所在层次。
-    s: box层结构栈；
-    f: 读取数据的文件；
-    offset: 起始解析点；
-    size: 待解析数据长度；
-    box信息: (box_type, box_len, box_offset(相对于offset))；
-    box所在层次的copy：tuple(s)。
+    '''box结构生成器.
+
+    按深度优先方式遍历待解析数据段中的boxes，按顺序生成单一box信息和该box所在层次。
+    不尝试检测box边界，故需要使offset与box边界对齐，size与box的大小一致，否则会导致遗漏。
+
+    Args:
+        s: box层结构栈；
+        f: 读取数据的文件；
+        offset: 起始解析点；
+        size: 待解析数据长度；
+
+    Yields:
+        (box_info, box_stacks)
+        box_info: (box_type, box_len, box_offset(相对于offset))；
+        box_stacks: box所在层次的copy：tuple(s)。
+
+    Raises:
+        ValueError: 无法读到完整所需数据时。
     '''
     box_offset = 0
     while True:

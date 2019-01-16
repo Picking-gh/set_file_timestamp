@@ -19,25 +19,25 @@ from mp4parse import parser
 
 
 def get_mvhd(path):
-    '''A mp4 file contains only one mvhdbox. So we get one or none
+    '''Returns the whole mvhd box content including the box length.
+    
+    A mp4 file must contain only one mvhd box. So we get one or none.
     '''
     s = deque()
     with open(path, 'rb') as f:
         g = parser(s, f, 0, getsize(path))
         while True:
             try:
-                box, _ = next(g)
-                if box[0] == 'mvhd':
-                    f.seek(box[2])
-                    return f.read(box[1])
+                box_info, _ = next(g)
+                if box_info[0] == 'mvhd':
+                    f.seek(box_info[2])
+                    return f.read(box_info[1])
             except StopIteration:
                 return b''
 
 
 def get_datetime(n: int):
-    '''n: creation_time or modification_time in the mvhd.
-    Tihs is an integer in seconds since midnight, Jan. 1, 1904, in UTC time
-    Make this integer a datetime object.
+    '''Returns a datetime object that is n seconds after the midnight, Jan. 1, 1904, in local time.
     '''
     # January 1st, 1904 at midnight, UTC time
     start_point = datetime(1904, 1, 1).replace(tzinfo=timezone.utc)
@@ -49,6 +49,7 @@ def get_datetime(n: int):
 
 def set_mp4_timestamp(path):
     '''用mvhd中的creation_time和modification_time设置mp4文件的创建时间和修改时间。
+
     如果目标时间与当前文件的创建时间一致（时间差小于1s）则不修改。
     如果creation_time和modification_time之中有1个为0，则用另一个赋值，都为零则不修改文件时间。
     '''
@@ -68,7 +69,7 @@ def set_mp4_timestamp(path):
             creation_time = struct.unpack('>Q', mvhd[12:20])[0]
             modification_time = struct.unpack('>Q', mvhd[20:28])[0]
     except (IndexError, struct.error):
-        print(f'{path} contains no valid mvhd box. Skip it.')
+        print(f'{path} contains no valid mvhd box. May not be a valid mp4 file. Skip it.')
         return
     if creation_time + modification_time == 0:
         print(f'{path} contains no creation_time or modification_time. Skip it.')
