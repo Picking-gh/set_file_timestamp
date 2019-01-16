@@ -70,18 +70,18 @@ def parser(s: deque, f, offset: int, size: int):
         if box_type not in boxes:
             box_offset += box_len
             continue
-        # data followed by header in normal box, assume the data is a sub_box
+        # data follows tightly the header in normal box, assume the data is a sub_box
         sub_box_offset = 8
-        # fullbox has an additional 1 byte of version and 3 bytes of flags
+        # a fullbox has an additional 1 byte of version and 3 bytes of flags before data
         if box_type in fullbox:
-            # dummy read
+            # dummy read to move the index for the next possible reading of largesize
             if len(f.read(4)) != 4:
                 raise ValueError('File corrupted. Stop parsing.')
             sub_box_offset += 4
-        # 0 size box means end of file
+        # 0 size box that means the end of file
         if box_len == 0:
             return
-        # box length determined by following 64bits largesize
+        # a very big box which the length is determined by the following 64bits largesize
         elif box_len == 1:
             try:
                 box_len = struct.unpack('>Q', f.read(8))[0]
