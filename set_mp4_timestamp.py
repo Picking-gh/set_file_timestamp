@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*
 # Written by - Picking@woft.name
 
-import os
-import sys
 import struct
 import time
 from collections import deque
 from datetime import datetime, timedelta, timezone
-from os.path import getctime, getmtime, isdir, join, split, splitext, getsize
+from os.path import getctime, getmtime, getsize
 
 from pywintypes import Time
 
@@ -20,7 +18,7 @@ from mp4parse import parser
 
 def get_mvhd(path):
     '''Returns the whole mvhd box content including the box length.
-    
+
     A mp4 file must contain only one mvhd box. So we get one or none.
     '''
     s = deque()
@@ -69,7 +67,8 @@ def set_mp4_timestamp(path):
             creation_time = struct.unpack('>Q', mvhd[12:20])[0]
             modification_time = struct.unpack('>Q', mvhd[20:28])[0]
     except (IndexError, struct.error):
-        print(f'{path} contains no valid mvhd box. May not be a valid mp4 file. Skip it.')
+        print(
+            f'{path} contains no valid mvhd box. May not be a valid mp4 file. Skip it.')
         return
     if creation_time + modification_time == 0:
         print(f'{path} contains no creation_time or modification_time. Skip it.')
@@ -101,15 +100,21 @@ def set_mp4_timestamp(path):
         CloseHandle(handle)
 
 
-try:
-    path = sys.argv[1:][0]
-except IndexError:
-    path = './'
-if not isdir(path):
-    print(u'请在命令行附加要更改文件所在文件夹的正确路径。')
-    sys.exit(1)
+if __name__ == "__main__":
+    import os
+    import sys
 
-for root, dirs, files in os.walk(path):
-    for a_file in files:
-        if splitext(a_file)[1] in ('.mp4',):
-            set_mp4_timestamp(join(root, a_file))
+    from os.path import isdir, join, split, splitext
+
+    try:
+        path = sys.argv[1:][0]
+    except IndexError:
+        path = './'
+    if not isdir(path):
+        print(u'请在命令行附加要更改文件所在文件夹的正确路径。')
+        sys.exit(1)
+
+    for root, dirs, files in os.walk(path):
+        for a_file in files:
+            if splitext(a_file)[1] in ('.mp4',):
+                set_mp4_timestamp(join(root, a_file))

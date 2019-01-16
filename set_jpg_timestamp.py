@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*
 # Written by - Picking@woft.name
 
-import os
-import sys
 import time
-from os.path import getctime, isdir, join, split, splitext
+from os.path import getctime, split, splitext
 
 import exifread
 from pywintypes import Time
@@ -16,6 +14,7 @@ from win32file import (FILE_ATTRIBUTE_NORMAL, FILE_SHARE_WRITE, GENERIC_WRITE,
 
 def set_jpg_timestamp(path):
     '''用保存在EXIF中的拍摄时间设置图片的创建时间和修改时间。
+
     如果目标时间与当前文件的创建时间一致（时间差小于1s）则不修改。
     '''
     f = open(path, 'rb')
@@ -69,15 +68,20 @@ def set_jpg_timestamp(path):
             CloseHandle(handle)
 
 
-try:
-    path = sys.argv[1:][0]
-except IndexError:
-    path = './'
-if not isdir(path):
-    print(u'请在命令行附加要更改文件所在文件夹的正确路径。')
-    sys.exit(1)
+if __name__ == "__main__":
+    import os
+    import sys
+    from os.path import isdir, join
 
-for root, dirs, files in os.walk(path):
-    for a_file in files:
-        if splitext(a_file)[1] in ('.jpg', '.jpeg'):
-            set_jpg_timestamp(join(root, a_file))
+    try:
+        path = sys.argv[1:][0]
+    except IndexError:
+        path = './'
+    if not isdir(path):
+        print(u'请在命令行附加要更改文件所在文件夹的正确路径。')
+        sys.exit(1)
+
+    for root, dirs, files in os.walk(path):
+        for a_file in files:
+            if splitext(a_file)[1] in ('.jpg', '.jpeg'):
+                set_jpg_timestamp(join(root, a_file))
