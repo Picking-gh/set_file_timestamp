@@ -104,7 +104,7 @@ if __name__ == "__main__":
     import os
     import sys
 
-    from os.path import isdir, join, split, splitext
+    from os.path import isdir, join, splitext
 
     try:
         path = sys.argv[1:][0]
