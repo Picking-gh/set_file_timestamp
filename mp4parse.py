@@ -124,14 +124,14 @@ if __name__ == "__main__":
         print(u'请在命令行附加要解析的文件。')
         sys.exit(1)
 
-    s = deque()
-    s.append(mp4file)
+    ss = deque()
+    ss.append(mp4file)
     tree = {mp4file: OD()}
-    with open(mp4file, 'rb') as f:
-        for box_info, box_stacks in parser(s, f, 0, getsize(mp4file)):
+    with open(mp4file, 'rb') as fp:
+        for bi, bss in parser(ss, fp, 0, getsize(mp4file)):
             key = tree
-            for s in box_stacks:
-                key = key[s]
-            key[f'{box_info[0]} (@{box_info[2]}, {box_info[1]})'] = {}
+            for bs in bss:
+                key = key[bs]
+            key[f'{bi[0]} (@{bi[2]}, {bi[1]})'] = {}
         tr = LeftAligned()
         print(tr(tree))
