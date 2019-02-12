@@ -23,12 +23,16 @@ def set_jpg_timestamp(path):
 
     new_timestamp = None
 
+    print('Processin {}...'.format(path))
+
     # 尝试获取'Image DateTime'的时间
     try:
         new_timestamp = time.mktime(time.strptime(
             tags['Image DateTime'].values, '%Y:%m:%d %H:%M:%S'))
     except KeyError:
-        print('No Image DateTime in "{}", try next method.'.format(path))
+        print('No Image DateTime in the file, try next method.')
+    except ValueError:
+        print('Image DateTime in the file is not valid, try next method.')
 
     # 尝试获取'EXIF DateTimeOriginal'的时间
     if not new_timestamp:
@@ -36,7 +40,9 @@ def set_jpg_timestamp(path):
             new_timestamp = time.mktime(time.strptime(
                 tags['EXIF DateTimeOriginal'].values, '%Y:%m:%d %H:%M:%S'))
         except KeyError:
-            print('No EXIF DateTimeOriginal key in "{}", try next method.'.format(path))
+            print('No EXIF DateTimeOriginal key in the file, try next method.')
+        except ValueError:
+            print('Image DateTime in the file is not valid, try next method.')
 
     # 尝试获取'EXIF DateTimeDigitized'的时间
     if not new_timestamp:
@@ -45,7 +51,9 @@ def set_jpg_timestamp(path):
                 tags['EXIF DateTimeDigitized'].values, '%Y:%m:%d %H:%M:%S'))
         except KeyError:
             print(
-                'No EXIF DateTimeDigitized key in "{}", try next method.'.format(path))
+                'No EXIF DateTimeDigitized key in the file, try next method.')
+        except ValueError:
+            print('Image DateTime in the file is not valid, try next method.')
 
     # 尝试从文件名获取时间，文件名需形如'XXX_YYYYmmdd_HHMMSS(_XXXXX).jp(e)g'
     if not new_timestamp:
@@ -56,16 +64,20 @@ def set_jpg_timestamp(path):
                 ''.join(time_strs), '%Y%m%d%H%M%S'))
         except ValueError:
             print(
-                'File name in "{}" contains no valid time info, nothing to try.'.format(path))
+                'File name in the file contains no valid time info, nothing to try.')
 
     if new_timestamp:
         old_timestamp = getctime(path)
         if abs(old_timestamp - new_timestamp) >= 1:
             ctime = Time(new_timestamp)
-            handle = CreateFile(path, GENERIC_WRITE,
-                                FILE_SHARE_WRITE, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
-            SetFileTime(handle, ctime, None, ctime)
-            CloseHandle(handle)
+            try:
+                handle = CreateFile(path, GENERIC_WRITE,
+                                    FILE_SHARE_WRITE, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
+                SetFileTime(handle, ctime, None, ctime)
+                CloseHandle(handle)
+                print('Done.')
+            except:
+                print('Can not change properties of the file. May not have enough right. Skipped.')
 
 
 if __name__ == "__main__":
