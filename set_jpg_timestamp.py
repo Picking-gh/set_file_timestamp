@@ -23,16 +23,17 @@ def set_jpg_timestamp(path):
 
     new_timestamp = None
 
-    print('Processin {}...'.format(path))
+    file_name = split(path)[1]
 
     # 尝试获取'Image DateTime'的时间
     try:
         new_timestamp = time.mktime(time.strptime(
             tags['Image DateTime'].values, '%Y:%m:%d %H:%M:%S'))
     except KeyError:
-        print('No Image DateTime in the file, try next method.')
+        print(f'No Image DateTime in [{file_name}], try next method.')
     except ValueError:
-        print('Image DateTime in the file is not valid, try next method.')
+        print(
+            f'Image DateTime in [{file_name}] is not valid, try next method.')
 
     # 尝试获取'EXIF DateTimeOriginal'的时间
     if not new_timestamp:
@@ -40,9 +41,11 @@ def set_jpg_timestamp(path):
             new_timestamp = time.mktime(time.strptime(
                 tags['EXIF DateTimeOriginal'].values, '%Y:%m:%d %H:%M:%S'))
         except KeyError:
-            print('No EXIF DateTimeOriginal key in the file, try next method.')
+            print(
+                f'No EXIF DateTimeOriginal key in [{file_name}], try next method.')
         except ValueError:
-            print('Image DateTime in the file is not valid, try next method.')
+            print(
+                f'Image DateTime in [{file_name}] is not valid, try next method.')
 
     # 尝试获取'EXIF DateTimeDigitized'的时间
     if not new_timestamp:
@@ -51,9 +54,10 @@ def set_jpg_timestamp(path):
                 tags['EXIF DateTimeDigitized'].values, '%Y:%m:%d %H:%M:%S'))
         except KeyError:
             print(
-                'No EXIF DateTimeDigitized key in the file, try next method.')
+                f'No EXIF DateTimeDigitized key in [{file_name}], try next method.')
         except ValueError:
-            print('Image DateTime in the file is not valid, try next method.')
+            print(
+                f'Image DateTime in [{file_name}] is not valid, try next method.')
 
     # 尝试从文件名获取时间，文件名需形如'XXX_YYYYmmdd_HHMMSS(_XXXXX).jp(e)g'
     if not new_timestamp:
@@ -64,7 +68,7 @@ def set_jpg_timestamp(path):
                 ''.join(time_strs), '%Y%m%d%H%M%S'))
         except ValueError:
             print(
-                'File name in the file contains no valid time info, nothing to try.')
+                f'File name in [{file_name}] contains no valid time info, nothing to try.')
 
     if new_timestamp:
         old_timestamp = getctime(path)
@@ -77,7 +81,8 @@ def set_jpg_timestamp(path):
                 CloseHandle(handle)
                 print('Done.')
             except:
-                print('Can not change properties of the file. May not have enough right. Skipped.')
+                print(
+                    f'Can not change properties of [{file_name}]. Make sure you have right permission. Skip it.')
 
 
 if __name__ == "__main__":
@@ -90,10 +95,11 @@ if __name__ == "__main__":
     except IndexError:
         path = './'
     if not isdir(path):
-        print(u'请在命令行附加要更改文件所在文件夹的正确路径。')
+        print('请在命令行附加要更改文件所在文件夹的正确路径。')
         sys.exit(1)
 
     for root, dirs, files in os.walk(path):
+        print(f'Processin {root}...')
         for a_file in files:
             if splitext(a_file)[1] in ('.jpg', '.jpeg'):
                 set_jpg_timestamp(join(root, a_file))
